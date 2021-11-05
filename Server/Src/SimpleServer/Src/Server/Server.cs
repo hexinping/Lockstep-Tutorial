@@ -6,6 +6,8 @@ using Lockstep.Network;
 using Lockstep.Util;
 
 namespace Lockstep.FakeServer{
+    
+    //继承消息派发接口  by add
     public class Server : IMessageDispatcher {
         //network
         public static IPEndPoint serverIpPoint = NetworkUtil.ToIPEndPoint("127.0.0.1", 10083);
@@ -32,11 +34,13 @@ namespace Lockstep.FakeServer{
 
         public void Start(){
             _netProxy.MessageDispatcher = this;
+            //MessagePacker 网络消息初始化的设置  by add
             _netProxy.MessagePacker = MessagePacker.Instance;
             _netProxy.Awake(NetworkProtocol.TCP, serverIpPoint);
             _startUpTimeStamp = _lastUpdateTimeStamp = DateTime.Now;
         }
-
+        
+        //派发消息
         public void Dispatch(Session session, Packet packet){
             ushort opcode = packet.Opcode();
             var message = session.Network.MessagePacker.DeserializeFrom(opcode, packet.Bytes, Packet.Index,
@@ -55,6 +59,7 @@ namespace Lockstep.FakeServer{
                     OnPlayerInput(session, message);
                     break;
                 case EMsgType.HashCode:
+                    //客户端每帧都会发一个哈希值 进行同步校验  by add
                     OnPlayerHashCode(session, message);
                     break;
             }
@@ -63,8 +68,10 @@ namespace Lockstep.FakeServer{
         public void Update(){
             var now = DateTime.Now;
             _deltaTime = (now - _lastUpdateTimeStamp).TotalSeconds;
+            //服务器每30毫秒派发一次，但是大部分都是15毫秒处理一次  by add
             if (_deltaTime > UpdateInterval) {
                 _lastUpdateTimeStamp = now;
+                //启动到当前的总时间  by add
                 _timeSinceStartUp = (now - _startUpTimeStamp).TotalSeconds;
                 DoUpdate();
             }
@@ -74,10 +81,12 @@ namespace Lockstep.FakeServer{
             //check frame inputs
             var fDeltaTime = (float) _deltaTime;
             var fTimeSinceStartUp = (float) _timeSinceStartUp;
+            
+            //调用房间对象的DoUpdate方法  by add
             _room?.DoUpdate(fTimeSinceStartUp, fDeltaTime);
         }
 
-
+        //玩家链接回调处理  by add
         void OnPlayerConnect(Session session, IMessage message){
             //TODO load from db
             
@@ -87,7 +96,8 @@ namespace Lockstep.FakeServer{
             if (_name2Player.TryGetValue(name, out var val)) {
                 return;
             }
-
+            
+            //构建玩家信息  by add
             var info = new PlayerServerInfo();
             info.Id = _idCounter++;
             info.name = name;
@@ -97,12 +107,16 @@ namespace Lockstep.FakeServer{
             session.BindInfo = info;
             _curCount++;
             if (_curCount >= Room.MaxPlayerCount) {
+                //当玩家达到最大房间数量，创建房间  by add
                 _room = new Room();
                 _room.Init(0);
+                
+                //把对应的玩家放入到房间里  by add
                 foreach (var player in _id2Player.Values) {
                     _room.OnPlayerJoin(_id2Session[player.Id], player);
                 }
-
+                
+                //游戏开始  by add
                 OnGameStart(_room);
             }
             Debug.Log("OnPlayerConnect count:" + _curCount + " " + JsonUtil.ToJson(msg));

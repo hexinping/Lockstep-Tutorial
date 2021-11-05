@@ -43,11 +43,12 @@ namespace Lockstep.FakeServer {
                             break;
                         }
                     }
-
+                    //检查当前所有玩家的输入是否都有效，是的话进行广播消息  by add
                     if (isFullInput) {
+                        //广播操作数据给客户端
                         BoardInputMsg(_curTick, inputs);
                         _tick2Inputs.Remove(_curTick);
-                        _curTick++;
+                        _curTick++; //服务器当前帧  by add
                     }
                 }
             }
@@ -69,6 +70,7 @@ namespace Lockstep.FakeServer {
         public void OnGameStart(){
             IsRunning = true;
             _curTick = 0;
+            //向客户端发送 Msg_StartGame消息 游戏开始  by add
             var frame = new Msg_StartGame();
             frame.mapId = 0;
             frame.playerInfos = _playerInfos;
@@ -92,6 +94,8 @@ namespace Lockstep.FakeServer {
             //Debug.Log($" Recv Input: {useId} {msg.input.inputUV}");
             int localId = 0;
             if (!_id2LocalId.TryGetValue(useId, out localId)) return;
+            
+            //_tick2Inputs 玩家每帧的输入信息  by add
             PlayerInput[] inputs;
             if (!_tick2Inputs.TryGetValue(msg.tick, out inputs)) {
                 inputs = new PlayerInput[MaxPlayerCount];

@@ -18,7 +18,8 @@ namespace LockstepTutorial {
     public class GameManager : UnityBaseManager {
         public static GameManager Instance { get; private set; }
         public static PlayerInput CurGameInput = new PlayerInput();
-
+        
+        //客户端模式 纯单机版  by add
         [Header("ClientMode")] public bool IsClientMode;
         public PlayerServerInfo ClientModeInfo = new PlayerServerInfo();
 
