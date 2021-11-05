@@ -4,7 +4,10 @@ using Lockstep.Game;
 using UnityEngine;
 
 
+//Unity 启动器
 public class MainScript : MonoBehaviour {
+    
+    //真正的游戏实例
     public Launcher launcher = new Launcher();
     public int MaxEnemyCount = 10;
     public bool IsClientMode = false;

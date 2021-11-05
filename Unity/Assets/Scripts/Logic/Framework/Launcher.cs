@@ -70,13 +70,13 @@ namespace Lockstep.Game {
             foreach (var mgr in _mgrContainer.AllMgrs) {
                 mgr.InitReference(_serviceContainer, _mgrContainer);
             }
-
-            //bind events
+            
+            //bind events 通过反射绑定事件
             foreach (var mgr in _mgrContainer.AllMgrs) {
                 _registerService.RegisterEvent<EEvent, GlobalEventHandler>("OnEvent_", "OnEvent_".Length,
                     EventHelper.AddListener, mgr);
             }
-
+            //调用所有service的DoAwake和DoStart
             foreach (var mgr in _mgrContainer.AllMgrs) {
                 mgr.DoAwake(_serviceContainer);
             }

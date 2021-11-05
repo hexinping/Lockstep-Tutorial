@@ -8,7 +8,7 @@ namespace NetMsg.Common {
     public partial class ServerFrame : BaseMsg {
         public byte[] inputDatas; //包含玩家的输入& 游戏输入
         public int tick;
-        public Msg_PlayerInput[] _inputs;
+        public Msg_PlayerInput[] _inputs; //所有玩家的输入
 
         public Msg_PlayerInput[] Inputs {
             get { return _inputs; }

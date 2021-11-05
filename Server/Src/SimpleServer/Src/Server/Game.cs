@@ -17,7 +17,7 @@ namespace Lockstep.FakeServer {
         private delegate BaseMsg ParseNetMsg(Deserializer reader);
 
 
-        public const int MaxPlayerCount = 2;
+        public const int MaxPlayerCount = 1;
 
         public int MapId { get; set; }
         public string GameHash { get; set; }
@@ -84,7 +84,7 @@ namespace Lockstep.FakeServer {
             if (player == null || MaxPlayerCount <= player.LocalId || Players[player.LocalId] != player) {
                 return;
             }
-
+            //确保收到所有玩家消息
             bool hasRecvAll = true;
             foreach (var user in Players) {
                 if (user != null && user.GameData == null) {
@@ -100,6 +100,7 @@ namespace Lockstep.FakeServer {
                     var helloMsg = new Msg_G2C_Hello() {
                         LocalId = (byte) i
                     };
+                    //发送localId给每个客户端
                     Players[i].SendTcp(EMsgSC.G2C_Hello, helloMsg);
                 }
 
@@ -108,7 +109,7 @@ namespace Lockstep.FakeServer {
                     userInfos[i] = Players[i]?.GameData;
                 }
 
-                //all user data ready notify game start
+                //all user data ready notify game start 发送开始游戏Msg_G2C_GameStartInfo
                 SetStartInfo(new Msg_G2C_GameStartInfo() {
                     MapId = MapId,
                     RoomId = GameId,
@@ -136,10 +137,11 @@ namespace Lockstep.FakeServer {
 
         public void DoStart(int gameId, int gameType, int mapId, Player[] playerInfos, string gameHash){
             State = EGameState.Loading;
-            Seed = LRandom.Range(1, 100000);
+            Seed = LRandom.Range(1, 100000); //随机种子
             Tick = 0;
             _timeSinceLoaded = 0;
             _firstFrameTimeStamp = 0;
+            //注册消息回调处理，使用字典存储
             RegisterMsgHandlers();
             Debug = new DebugInstance("Room" + GameId + ": ");
             var count = playerInfos.Length;
@@ -153,6 +155,7 @@ namespace Lockstep.FakeServer {
             TimeSinceCreate = LTime.timeSinceLevelLoad;
             for (byte i = 0; i < count; i++) {
                 var player = Players[i];
+                //存储客户端玩家信息
                 _userId2LocalId.Add(player.UserId, player.LocalId);
             }
 
@@ -168,8 +171,10 @@ namespace Lockstep.FakeServer {
             _timeSinceLoaded += deltaTime;
             _waitTimer += deltaTime;
             if (State != EGameState.Playing) return;
+            //战斗正式开始
             if(_gameStartTimestampMs <=0) return;
             while (Tick < _tickSinceGameStart) {
+                //服务器每30毫秒会收集所有玩家的输入
                 _CheckBorderServerFrame(true);
             }
         }
@@ -222,6 +227,7 @@ namespace Lockstep.FakeServer {
 
             msg.startTick = frames[0].tick;
             msg.frames = frames;
+            //广播消息给每个客户端Msg_ServerFrames
             BorderUdp(EMsgSC.G2C_FrameData, msg);
             if (_firstFrameTimeStamp <= 0) {
                 _firstFrameTimeStamp = _timeSinceLoaded;
@@ -316,6 +322,7 @@ namespace Lockstep.FakeServer {
             //_gameServer.TickOut(player, reason);
         }
 
+        //注册消息回调处理，使用字典存储
         private void RegisterMsgHandlers(){
             RegisterHandler(EMsgSC.C2G_PlayerInput, C2G_PlayerInput,
                 (reader) => { return ParseData<Msg_PlayerInput>(reader); });
@@ -330,8 +337,8 @@ namespace Lockstep.FakeServer {
         }
 
         private void RegisterHandler(EMsgSC type, DealNetMsg func, ParseNetMsg parseFunc){
-            allMsgDealFuncs[(int) type] = func;
-            allMsgParsers[(int) type] = parseFunc;
+            allMsgDealFuncs[(int) type] = func;  //客户端向服务器发送消息回调
+            allMsgParsers[(int) type] = parseFunc;  //服务器向客户端发送消息回调
         }
 
         T ParseData<T>(Deserializer reader) where T : BaseMsg, new(){
@@ -487,12 +494,14 @@ namespace Lockstep.FakeServer {
                 //login
                 //room
                 case EMsgSC.C2G_PlayerInput:
+                    //收到客户端的 Msg_PlayerInput消息
                     C2G_PlayerInput(player, msg);
                     break;
                 case EMsgSC.C2G_HashCode:
                     C2G_HashCode(player, msg);
                     break;
                 case EMsgSC.C2G_LoadingProgress:
+                    //收到客户端加载进度消息处理
                     C2G_LoadingProgress(player, msg);
                     break;
                 case EMsgSC.C2G_ReqMissFrame:
@@ -517,7 +526,7 @@ namespace Lockstep.FakeServer {
             if (State != EGameState.PartLoaded && State != EGameState.Playing) return;
             if (State == EGameState.PartLoaded) {
                 Log("First input: game start playing");
-                State = EGameState.Playing;
+                State = EGameState.Playing; //接收到客户端Msg_PlayerInput消息设置状态为EGameState.Playing
             }
 
             var input = data as Msg_PlayerInput;
@@ -542,7 +551,7 @@ namespace Lockstep.FakeServer {
             if (!_allNeedWaitInputPlayerIds.Contains(id)) {
                 _allNeedWaitInputPlayerIds.Add(id);
             }
-
+            //记录每个玩家的输入
             frame.Inputs[id] = input;
             _CheckBorderServerFrame(false);
         }
@@ -651,13 +660,15 @@ namespace Lockstep.FakeServer {
 
             _playerLoadingProgress[player.LocalId] = msg.Progress;
 
-            //Log($"palyer{player.LocalId} Load {msg.Progress}");
-
+            Log($"palyer{player.LocalId} Load {msg.Progress}");
+            
+            //广播给每个玩家所有玩家的进度
             BorderTcp(EMsgSC.G2C_LoadingProgress, new Msg_G2C_LoadingProgress() {
                 Progress = _playerLoadingProgress
             });
 
             if (msg.Progress < 100) return;
+            //当前玩家加载完毕,继续等待所有玩家加载完毕
             var isDone = true;
             foreach (var progress in _playerLoadingProgress) {
                 if (progress < 100) {
@@ -667,6 +678,7 @@ namespace Lockstep.FakeServer {
             }
 
             if (isDone) {
+                //所有玩家加载完毕
                 OnFinishedLoaded();
             }
         }

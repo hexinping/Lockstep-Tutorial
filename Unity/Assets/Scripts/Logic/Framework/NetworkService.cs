@@ -32,13 +32,13 @@ namespace Lockstep.Game {
             _msgHandler = new NetworkMsgHandler();
             _roomMsgMgr.Init(_msgHandler);
         }
-
+        //launcher.DoStart会调用到所有Service的DoStart方法
         public override void DoStart(){
             if (_noNetwork) return;
             _roomMsgMgr.ConnectToGameServer(new Msg_C2G_Hello(), null,false);
             //Utils.StartServices();
         }
-
+        //Laucher.Doupdate 会调用所有Servic的DoUpdate
         public void DoUpdate(LFloat deltaTime){
             if (_noNetwork) return;
             //Utils.UpdateServices();
