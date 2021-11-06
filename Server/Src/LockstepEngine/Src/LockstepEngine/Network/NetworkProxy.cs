@@ -210,6 +210,7 @@ namespace Lockstep.Network {
         }
 
         public void Start(){
+            //开一个子线程接收网络消息  by add
             this.StartRecv();
         }
 
@@ -238,8 +239,9 @@ namespace Lockstep.Network {
         public ChannelType ChannelType {
             get { return this.channel.ChannelType; }
         }
-
+    
         private async void StartRecv(){
+            //循环监听网络消息
             while (true) {
                 if (this.IsDisposed) {
                     return;
@@ -247,6 +249,7 @@ namespace Lockstep.Network {
 
                 Packet packet;
                 try {
+                    //await 如果没有网络消息会进行阻塞
                     packet = await this.channel.Recv();
 
                     if (this.IsDisposed) {
@@ -259,6 +262,7 @@ namespace Lockstep.Network {
                 }
 
                 try {
+                    //最后会调用this.Network.MessageDispatcher.Dispatch
                     this.Run(packet);
                 }
                 catch (Exception e) {

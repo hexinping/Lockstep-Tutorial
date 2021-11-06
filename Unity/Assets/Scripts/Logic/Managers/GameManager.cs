@@ -67,7 +67,11 @@ namespace LockstepTutorial {
 
         private void Awake(){
             Screen.SetResolution(1024, 768, false);
+            
+            //网络通信ping值计算 by add
             gameObject.AddComponent<PingMono>();
+            
+            //输入脚本 by add
             gameObject.AddComponent<InputMono>();
 
             _Awake();
@@ -85,21 +89,27 @@ namespace LockstepTutorial {
 #if !UNITY_EDITOR
             IsReplay = false;
 #endif
+            //管理所有的mgr
             DoAwake();
             foreach (var mgr in _mgrs) {
+                //分别调用每个mgr的DoAwake方法
                 mgr.DoAwake();
             }
         }
 
 
         private void _Start(){
+            //判断回放模式和纯客户端模式  by add
             DoStart();
+            
+            //调用每个mgr的DoStart方法 by add
             foreach (var mgr in _mgrs) {
                 mgr.DoStart();
             }
 
             Debug.Trace("Before StartGame _IdCounter" + BaseEntity.IdCounter);
             if (!IsReplay && !IsClientMode) {
+                //正常模式 by add
                 netClient = new NetClient();
                 netClient.Start();
                 netClient.Send(new Msg_JoinRoom() {name = Application.dataPath});
@@ -242,6 +252,8 @@ namespace LockstepTutorial {
 
         public override void DoAwake(){
             Instance = this;
+            
+            //记录一些管理器对象 by add
             var mgrs = GetComponents<UnityBaseManager>();
             foreach (var mgr in mgrs) {
                 if (mgr != this) {
@@ -253,10 +265,12 @@ namespace LockstepTutorial {
 
         public override void DoStart(){
             if (IsReplay) {
+                //回放模式，反序列化文件
                 RecordHelper.Deserialize(recordFilePath, this);
             }
 
             if (IsClientMode) {
+                //纯客户端模式
                 playerCount = 1;
                 localPlayerId = 0;
                 playerServerInfos = new PlayerServerInfo[] {ClientModeInfo};
