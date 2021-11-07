@@ -52,6 +52,8 @@ namespace LockstepTutorial {
                 
                 //空格键
                 isSpeedUp = Input.GetKeyDown(KeyCode.Space);
+                
+                //这个是每帧都会赋值，但是发送给服务器却是每30毫秒发送一次，感觉延迟好严重
                 GameManager.CurGameInput =  new PlayerInput() {
                     mousePos = mousePos,
                     inputUV = inputUV,

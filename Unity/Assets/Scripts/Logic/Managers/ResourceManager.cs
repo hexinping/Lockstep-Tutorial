@@ -15,6 +15,7 @@ namespace LockstepTutorial {
 
         public override void DoAwake(){
             Instance = this;
+            //一个ScriptableObject配置脚本
             config = Resources.Load<GameConfig>(configPath);
         }
 
@@ -35,7 +36,7 @@ namespace LockstepTutorial {
             if (_id2Prefab.TryGetValue(id, out var val)) {
                 return val;
             }
-
+            //根据配置读取对应的资源配置
             if (id < 10) {
                 var config = this.config.GetPlayerConfig(id);
                 var prefab = (GameObject) Resources.Load(pathPrefix + config.prefabPath);

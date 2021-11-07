@@ -169,7 +169,7 @@ namespace Lockstep.Logic {
     public class Msg_StartGame : BaseFormater, IMessage {
         public ushort opcode { get; set; } = (ushort) EMsgType.StartGame;
         public int mapId;
-        public int localPlayerId;
+        public int localPlayerId; //当前玩家的playerId
         public PlayerServerInfo[] playerInfos;
 
         public override void Serialize(Serializer writer){

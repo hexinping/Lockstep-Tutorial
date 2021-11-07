@@ -17,7 +17,9 @@ using Profiler = Lockstep.Util.Profiler;
 namespace LockstepTutorial {
     public class GameManager : UnityBaseManager {
         public static GameManager Instance { get; private set; }
-        public static PlayerInput CurGameInput = new PlayerInput();
+        
+        //当前玩家的输入数据，可能为空帧也要上传
+        public static PlayerInput CurGameInput = new PlayerInput();  
         
         //客户端模式 纯单机版  by add
         [Header("ClientMode")] public bool IsClientMode;
@@ -37,6 +39,8 @@ namespace LockstepTutorial {
         public int curFrameIdx = 0;
         [HideInInspector] public FrameInput curFrameInput;
         [HideInInspector] public PlayerServerInfo[] playerServerInfos;
+        
+        //所有帧操作数据
         [HideInInspector] public List<FrameInput> frames = new List<FrameInput>();
 
         [Header("Ping")] public static int PingVal;
@@ -50,6 +54,7 @@ namespace LockstepTutorial {
         private NetClient netClient;
         private List<UnityBaseManager> _mgrs = new List<UnityBaseManager>();
 
+        //日志存储日志路径
         private static string _traceLogPath {
             get {
 #if UNITY_STANDALONE_OSX
@@ -123,14 +128,17 @@ namespace LockstepTutorial {
         private void _DoUpdate(){
             if (!_hasStart) return;
             remainTime += Time.deltaTime;
-            while (remainTime >= 0.03f) {
+            //每30毫秒刷新一次，其实可以不用，
+            while (remainTime >= 0.03f) 
+            {
                 remainTime -= 0.03f;
                 //send input
                 if (!IsReplay) {
+                    //非回放模式，发送客户端的操作帧数据，
                     SendInput();
                 }
 
-
+                //检测当前帧是否有效
                 if (GetFrame(curFrameIdx) == null) {
                     return;
                 }
@@ -151,10 +159,10 @@ namespace LockstepTutorial {
             this.playerCount = playerInfos.Length;
             this.playerServerInfos = playerInfos;
             this.localPlayerId = localPlayerId;
+            //帧记录存储文件路径
             Debug.TraceSavePath = _traceLogPath;
             allPlayers.Clear();
             for (int i = 0; i < playerCount; i++) {
-                Debug.Trace("CreatePlayer");
                 allPlayers.Add(new Player() {localId = i});
             }
 
@@ -164,29 +172,34 @@ namespace LockstepTutorial {
                 var go = HeroManager.InstantiateEntity(allPlayers[i], playerInfo.PrefabId, playerInfo.initPos);
                 //init mover
                 if (allPlayers[i].localId == localPlayerId) {
+                    //初始化本地客户端的Transform
                     MyPlayerTrans = go.transform;
                 }
             }
-
+            
+            //当前玩家
             MyPlayer = allPlayers[localPlayerId];
         }
 
-
+        
+        //30毫秒发送一次
         public void SendInput(){
             if (IsClientMode) {
+                //客户端模式直接存储帧数据
                 PushFrameInput(new FrameInput() {
                     tick = curFrameIdx,
-                    inputs = new PlayerInput[] {CurGameInput}
+                    inputs = new PlayerInput[] {CurGameInput} //InputMono脚本里会每帧都会赋值
                 });
                 return;
             }
-
+        
             predictTickCount = 2; //Mathf.Clamp(Mathf.CeilToInt(pingVal / 30), 1, 20);
             if (inputTick > predictTickCount + _maxServerFrameIdx) {
                 return;
             }
 
             var playerInput = CurGameInput;
+            //每一帧操作数据发送给服务器
             netClient?.Send(new Msg_PlayerInput() {
                 input = playerInput,
                 tick = inputTick
@@ -199,20 +212,25 @@ namespace LockstepTutorial {
 
 
         private void Step(){
+            //更新当前帧所有玩家的输入
             UpdateFrameInput();
             if (IsReplay) {
+                //回放模式
                 if (curFrameIdx < frames.Count) {
                     Replay(curFrameIdx);
                     curFrameIdx++;
                 }
             }
             else {
+                // TODO??
                 Recoder();
-                //send hash
+                //send hash 利用哈希校验每一帧每个客户端是否出现异常，检测不同步的现象
                 netClient?.Send(new Msg_HashCode() {
                     tick = curFrameIdx,
                     hash = GetHash()
                 });
+                
+                //每一帧记录数据
                 TraceHelper.TraceFrameState();
                 curFrameIdx++;
             }
@@ -320,6 +338,7 @@ namespace LockstepTutorial {
             curFrameInput = GetFrame(curFrameIdx);
             var frame = curFrameInput;
             for (int i = 0; i < playerCount; i++) {
+                //所有玩家的帧输入数据
                 allPlayers[i].InputAgent = frame.inputs[i];
             }
         }

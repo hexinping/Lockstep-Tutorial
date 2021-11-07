@@ -32,6 +32,7 @@ namespace Lockstep.Logging {
             }
 
             if (_traceSb.Length > traceDumpLen) {
+                //写满128KB 刷新一次文件
                 FlushTrace();
             }
         }

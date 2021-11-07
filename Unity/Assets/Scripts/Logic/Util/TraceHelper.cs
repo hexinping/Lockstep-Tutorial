@@ -13,15 +13,16 @@ namespace LockstepTutorial {
 
         private void _TraceFrameState(){
             dumpSb.AppendLine("Tick: " + GameManager.Instance.curFrameIdx);
-            //trace input
+            //trace input  记录玩家的输入
             foreach (var input in GameManager.Instance.curFrameInput.inputs) {
                 DumpInput(input);
             }
-
+            
+            //记录玩家enity的属性
             foreach (var entity in GameManager.allPlayers) {
                 DumpEntity(entity);
             }
-
+            //记录敌人enity的属性
             foreach (var entity in EnemyManager.Instance.allEnemy) {
                 //dumpSb.Append(" " + entity.timer);
                 dumpSb.Append(" " + (entity.target == null ? "" : entity.target.EntityId.ToString()));

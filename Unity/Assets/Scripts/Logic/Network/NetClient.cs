@@ -30,6 +30,7 @@ namespace Lockstep.Logic{
                     OnFrameInput(session, message);
                     break;
                 case EMsgType.StartGame:
+                    //当人数到达房间最大数，服务器派发StartGame消息 by add
                     OnStartGame(session, message);
                     break;
             }
