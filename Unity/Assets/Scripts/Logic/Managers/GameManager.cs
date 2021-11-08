@@ -325,7 +325,7 @@ namespace LockstepTutorial {
             if (Instance.tick2SendTimer.TryGetValue(input.tick, out var val)) {
                 Delays.Add(Time.realtimeSinceStartup - val);
             }
-
+            //存储帧消息数据
             frames[input.tick] = input;
         }
 

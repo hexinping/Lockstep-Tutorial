@@ -27,6 +27,7 @@ namespace Lockstep.Logic{
             var type = (EMsgType) opcode;
             switch (type) {
                 case EMsgType.FrameInput:
+                    //客户端接收到服务器的帧消息
                     OnFrameInput(session, message);
                     break;
                 case EMsgType.StartGame:
@@ -38,6 +39,7 @@ namespace Lockstep.Logic{
 
         public void OnFrameInput(Session session, IMessage message){
             var msg = message as Msg_FrameInput;
+            //存储帧消息数据到GameManager里
             GameManager.PushFrameInput(msg.input);
         }
 
