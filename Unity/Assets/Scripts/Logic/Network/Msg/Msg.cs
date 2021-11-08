@@ -60,11 +60,11 @@ namespace Lockstep.Logic {
     }
 
     public class PlayerInput : BaseFormater {
-        public LVector2 mousePos;
-        public LVector2 inputUV;
-        public bool isInputFire;
-        public int skillId;
-        public bool isSpeedUp;
+        public LVector2 mousePos; //鼠标位置
+        public LVector2 inputUV;  //移动UV
+        public bool isInputFire;  //射击
+        public int skillId;   //技能释放
+        public bool isSpeedUp;  //跳跃
 
         public override void Serialize(Serializer writer){
             writer.Write(mousePos);

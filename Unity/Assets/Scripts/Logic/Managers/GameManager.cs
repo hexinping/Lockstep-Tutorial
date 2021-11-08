@@ -112,7 +112,7 @@ namespace LockstepTutorial {
                 mgr.DoStart();
             }
 
-            Debug.Trace("Before StartGame _IdCounter" + BaseEntity.IdCounter);
+            Debug.Trace("Before StartGame _IdCounter " + BaseEntity.IdCounter, true);
             if (!IsReplay && !IsClientMode) {
                 //正常模式 by add
                 netClient = new NetClient();
@@ -120,6 +120,8 @@ namespace LockstepTutorial {
                 netClient.Send(new Msg_JoinRoom() {name = Application.dataPath});
             }
             else {
+                //回放模式和客户端模式都走这
+                //playerServerInfos 会在DoStart里从文件里反序列化生成帧数据
                 StartGame(0, playerServerInfos, localPlayerId);
             }
         }
@@ -142,7 +144,9 @@ namespace LockstepTutorial {
                 if (GetFrame(curFrameIdx) == null) {
                     return;
                 }
-
+                //更新当前帧所有玩家的输入
+                //利用哈希校验每一帧每个客户端是否出现异常，检测不同步的现象
+                //记录每一帧数据到本地作为日志文件 debug使用
                 Step();
             }
         }
@@ -255,12 +259,14 @@ namespace LockstepTutorial {
 
 
         private void OnDestroy(){
+            //关闭客户端，发送离开房间消息
             netClient?.Send(new Msg_QuitRoom());
             foreach (var mgr in _mgrs) {
                 mgr.DoDestroy();
             }
 
             if (!IsReplay) {
+                //正常模式下把帧数据记录到本地文件，回放模式里使用
                 RecordHelper.Serialize(recordFilePath, this);
             }
 
