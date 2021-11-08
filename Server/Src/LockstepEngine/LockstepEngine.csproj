@@ -19,7 +19,4 @@
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
       <OutputPath>../../bin/</OutputPath>
     </PropertyGroup>
-    <ItemGroup>
-      <Content Include="Src\.DS_Store" />
-    </ItemGroup>
 </Project>
