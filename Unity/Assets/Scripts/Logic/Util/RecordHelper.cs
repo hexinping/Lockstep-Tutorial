@@ -7,18 +7,19 @@ using Lockstep.Util;
 namespace LockstepTutorial {
     public class RecordHelper {
         private const int RECODER_FILE_VERSION = 0;
-
+        
+        //序列化到本地文件，回放模式直接反序列化使用
         public static void Serialize(string recordFilePath, GameManager mgr){
             var writer = new Serializer();
             writer.Write(RECODER_FILE_VERSION);
-            writer.Write(mgr.playerCount);
-            writer.Write(mgr.localPlayerId);
-            writer.Write(mgr.playerServerInfos);
+            writer.Write(mgr.playerCount); //玩家总数
+            writer.Write(mgr.localPlayerId); //当前玩家id
+            writer.Write(mgr.playerServerInfos); //所有玩家信息
 
-            var count = mgr.frames.Count;
+            var count = mgr.frames.Count; //总逻辑帧数
             writer.Write(count);
             for (int i = 0; i < count; i++) {
-                mgr.frames[i].Serialize(writer);
+                mgr.frames[i].Serialize(writer); //每一帧所有的帧数据
             }
 
             var bytes = writer.CopyData();
