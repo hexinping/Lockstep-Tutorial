@@ -11,8 +11,10 @@ namespace LockstepTutorial {
             entity.engineTransform = obj.transform;
             entity.transform.Pos3 = position;
             config.CopyFiledsTo(entity);
+            //显示层
             var views = obj.GetComponents<IView>();
             foreach (var view in views) {
+                //分别调用每个IView的BindEnity方法  PlayerView EnemyView...
                 view.BindEntity(entity);
             }
             entity.PrefabId = prefabId;

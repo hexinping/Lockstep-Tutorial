@@ -46,7 +46,10 @@ namespace Lockstep.Logic {
         }
 
         public override void DoUpdate(LFloat deltaTime){
+            //物理更新
             rigidbody.DoUpdate(deltaTime);
+            
+            //Component 更新 TODO
             foreach (var comp in allComponents) {
                 comp.DoUpdate(deltaTime);
             }

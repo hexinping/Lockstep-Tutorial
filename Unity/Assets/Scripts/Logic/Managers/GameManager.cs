@@ -253,6 +253,7 @@ namespace LockstepTutorial {
             var deltaTime = new LFloat(true, 30);
             DoUpdate(deltaTime);
             foreach (var mgr in _mgrs) {
+                //英雄 敌人mgr DoUpdate
                 mgr.DoUpdate(deltaTime);
             }
         }
