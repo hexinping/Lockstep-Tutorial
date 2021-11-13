@@ -5,6 +5,7 @@ namespace Lockstep.Serialization
 {
     public static class FastBitConverter
     {
+        //使用自定义内存布局，创建联合体
         [StructLayout(LayoutKind.Explicit)]
         private struct ConverterHelperDouble
         {
