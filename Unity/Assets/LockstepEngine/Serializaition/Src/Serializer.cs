@@ -36,7 +36,8 @@ namespace Lockstep.Serialization {
 
         void Deserialize(Deserializer reader);
     }
-
+    
+    //Serializer 这个类需要研究下
     public partial class Serializer {
         protected byte[] _data;
         protected int _position;
