@@ -110,7 +110,9 @@ namespace Lockstep.Game {
             //_localActorId = localActorId;
             _allActors = allActors;
             _constStateService.LocalActorId = _localActorId;
+            //给world注册一些列system，并且调用system的DoAwake和DoStart方法
             _world.StartSimulate(_serviceContainer, _mgrContainer);
+            //发送LevelLoadProgress事件 会调用到OnEvent_LevelLoadProgress方法
             EventHelper.Trigger(EEvent.LevelLoadProgress, 1f);
         }
 
@@ -213,18 +215,20 @@ namespace Lockstep.Game {
             if (_commonStateService.IsPause) {
                 return;
             }
-
+            //FrameBuffer
             _cmdBuffer.DoUpdate(deltaTime, _world.Tick );
 
             //client mode no network
             if (_constStateService.IsClientMode) {
+                //客户端模式
                 DoClientUpdate();
             }
             else {
                 while (inputTick <= inputTargetTick) {
+                    // ???? 这块没看懂
                     SendInputs(inputTick++);
                 }
-
+                //正常刷新
                 DoNormalUpdate();
             }
         }
@@ -254,7 +258,7 @@ namespace Lockstep.Game {
 
             var minTickToBackup = (maxContinueServerTick - (maxContinueServerTick % snapshotFrameInterval));
 
-            // Pursue Server frames
+            // Pursue Server frames 追帧
             var deadline = LTime.realtimeSinceStartupMS + MaxSimulationMsPerFrame;
             while (_world.Tick < _cmdBuffer.CurTickInServer) {
                 var tick = _world.Tick;
@@ -278,7 +282,7 @@ namespace Lockstep.Game {
             }
 
 
-            // Roll back
+            // Roll back 回滚
             if (_cmdBuffer.IsNeedRollback ) {
                 RollbackTo(_cmdBuffer.NextTickToCheck, maxContinueServerTick);
                 CleanUselessSnapshot(System.Math.Min(_cmdBuffer.NextTickToCheck - 1, _world.Tick));
@@ -462,10 +466,12 @@ namespace Lockstep.Game {
 
         void OnEvent_OnGameCreate(object param){
             if (param is Msg_G2C_Hello msg) {
+                //正常模式使用
                 OnGameCreate(60, msg.LocalId, msg.UserCount);
             }
 
             if (param is Msg_G2C_GameStartInfo smsg) {
+                //开始游戏消息 客户端模式使用
                 _gameStartInfo = smsg;
                 OnGameCreate(60, 0, smsg.UserCount);
             }

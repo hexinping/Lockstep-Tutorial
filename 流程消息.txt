@@ -1,30 +1,31 @@
-1 ¿Í»§¶Ë·¢ËÍ¼ÓÈë·¿¼äÏûÏ¢ ==¡· Msg_C2L_JoinRoom
-2 ·şÎñÆ÷ÅĞ¶Ï´ïµ½×î´ó·¿¼äÈËÊıºó==¡·¿ªÊ¼ÓÎÏ·
-3 ·şÎñÆ÷¸øÃ¿¸öÍæ¼Ò·¢ËÍÒ»¸öMsg_G2C_HelloÏûÏ¢£¬È·¶¨Ã¿¸ö¿Í»§¶ËµÄlocalId
-4 ·şÎñÆ÷¸øÃ¿¸öÍæ¼Ò·¢ËÍMsg_G2C_GameStartInfoÏûÏ¢£¬»áµ÷ÓÃµ½¿Í»§¶ËRoomMsgManager.G2C_GameStartInfo,²¢ÇÒ·¿¼ä×´Ì¬±ä³ÉEGameState.Loading
-5 ¿Í»§¶ËRoomMsgManager.DoUpdateÀï»áÅĞ¶ÏÈç¹ûÊÇEGameState.Loading×´Ì¬¾Í·¢ËÍMsg_C2G_LoadingProgressÏûÏ¢
-6 ·şÎñÆ÷¹ã²¥Msg_G2C_LoadingProgressÏûÏ¢¸øÃ¿¸ö¿Í»§¶Ë£¬²¢ÇÒµÈ´ıËùÓĞÍæ¼Ò¼ÓÔØÍê±Ï
-7 ËùÓĞÍæ¼Ò¼ÓÔØÍê±Ïºó£¬·şÎñÆ÷¹ã²¥ÏûÏ¢Msg_G2C_AllFinishedLoaded¸øÃ¿¸ö¿Í»§¶Ë
-8 ¿Í»§¶ËËùÓĞÍæ¼Ò¼ÓÔØÍê±ÏÏûÏ¢£¬¿Í»§¶Ë´¦ÀíÏûÏ¢»Øµ÷RoomMsgManager.G2C_AllFinishedLoaded£¬ÅÉ·¢ÊÂ¼ş¸ø´¦Àí»Øµ÷OnEvent_OnAllPlayerFinishedLoad£¬¿Í»§¶Ë·¢ËÍMsg_PlayerInput¸ø·şÎñÆ÷
-9 ·şÎñÆ÷½ÓÊÕµ½µ½Msg_PlayerInputÏûÏ¢ºó£¬Game.C2G_PlayerInputÀïÉèÖÃ×´Ì¬Îª EGameState.Playing£¬ Game.DoUpdateÂß¼­ÕıÊ½ÉúĞ§
-10  Game.DoUpdateÀï·şÎñÆ÷Ã¿30ºÁÃë»áÊÕ¼¯ËùÓĞÍæ¼ÒµÄÊäÈë£¬²¢¹ã²¥ÏûÏ¢Msg_ServerFrames¸ø¿Í»§¶Ë
+1 å®¢æˆ·ç«¯å‘é€åŠ å…¥æˆ¿é—´æ¶ˆæ¯ ==ã€‹ Msg_C2L_JoinRoom
+2 æœåŠ¡å™¨åˆ¤æ–­è¾¾åˆ°æœ€å¤§æˆ¿é—´äººæ•°å==ã€‹å¼€å§‹æ¸¸æˆ
+3 æœåŠ¡å™¨ç»™æ¯ä¸ªç©å®¶å‘é€ä¸€ä¸ªMsg_G2C_Helloæ¶ˆæ¯ï¼Œç¡®å®šæ¯ä¸ªå®¢æˆ·ç«¯çš„localId
+4 æœåŠ¡å™¨ç»™æ¯ä¸ªç©å®¶å‘é€Msg_G2C_GameStartInfoæ¶ˆæ¯ï¼Œä¼šè°ƒç”¨åˆ°å®¢æˆ·ç«¯RoomMsgManager.G2C_GameStartInfo,å¹¶ä¸”æˆ¿é—´çŠ¶æ€å˜æˆEGameState.Loading
+5 å®¢æˆ·ç«¯RoomMsgManager.DoUpdateé‡Œä¼šåˆ¤æ–­å¦‚æœæ˜¯EGameState.LoadingçŠ¶æ€å°±å‘é€Msg_C2G_LoadingProgressæ¶ˆæ¯
+6 æœåŠ¡å™¨å¹¿æ’­Msg_G2C_LoadingProgressæ¶ˆæ¯ç»™æ¯ä¸ªå®¢æˆ·ç«¯ï¼Œå¹¶ä¸”ç­‰å¾…æ‰€æœ‰ç©å®¶åŠ è½½å®Œæ¯•
+7 æ‰€æœ‰ç©å®¶åŠ è½½å®Œæ¯•åï¼ŒæœåŠ¡å™¨å¹¿æ’­æ¶ˆæ¯Msg_G2C_AllFinishedLoadedç»™æ¯ä¸ªå®¢æˆ·ç«¯
+8 å®¢æˆ·ç«¯æ‰€æœ‰ç©å®¶åŠ è½½å®Œæ¯•æ¶ˆæ¯ï¼Œå®¢æˆ·ç«¯å¤„ç†æ¶ˆæ¯å›è°ƒRoomMsgManager.G2C_AllFinishedLoadedï¼Œæ´¾å‘äº‹ä»¶ç»™å¤„ç†å›è°ƒOnEvent_OnAllPlayerFinishedLoadï¼Œå®¢æˆ·ç«¯å‘é€Msg_PlayerInputç»™æœåŠ¡å™¨
+9 æœåŠ¡å™¨æ¥æ”¶åˆ°åˆ°Msg_PlayerInputæ¶ˆæ¯åï¼ŒGame.C2G_PlayerInputé‡Œè®¾ç½®çŠ¶æ€ä¸º EGameState.Playingï¼Œ Game.DoUpdateé€»è¾‘æ­£å¼ç”Ÿæ•ˆ
+10  Game.DoUpdateé‡ŒæœåŠ¡å™¨æ¯30æ¯«ç§’ä¼šæ”¶é›†æ‰€æœ‰ç©å®¶çš„è¾“å…¥ï¼Œå¹¶å¹¿æ’­æ¶ˆæ¯Msg_ServerFramesç»™å®¢æˆ·ç«¯
+11 å®¢æˆ·ç«¯æ‰€æœ‰çš„Updateé€»è¾‘éƒ½åœ¨Launcher.DoUpdate ==ã€‹ SimulatorService.DoUpdate
 
 
 
-==¡· ¿Í»§¶ËÊ¹ÓÃTCP£¬´¦ÀíÏûÏ¢¶¼ÔÚNetworkServiceÀï  RoomMsgManager
-==¡· ·şÎñÆ÷Ê¹ÓÃµÄServerÀà´¦ÀíÏûÏ¢OnNetMsg
+==ã€‹ å®¢æˆ·ç«¯ä½¿ç”¨TCPï¼Œå¤„ç†æ¶ˆæ¯éƒ½åœ¨NetworkServiceé‡Œ  RoomMsgManager
+==ã€‹ æœåŠ¡å™¨ä½¿ç”¨çš„Serverç±»å¤„ç†æ¶ˆæ¯OnNetMsg
 
-¿Í»§¶ËÍ¨¹ı·¢ÉäÈ¥×¢²áÊÂ¼ş»úÖÆ
+å®¢æˆ·ç«¯é€šè¿‡å‘å°„å»æ³¨å†Œäº‹ä»¶æœºåˆ¶
 {
- 	//bind events Í¨¹ı·´Éä°ó¶¨ÊÂ¼ş
+ 	//bind events é€šè¿‡åå°„ç»‘å®šäº‹ä»¶
             foreach (var mgr in _mgrContainer.AllMgrs) {
                 _registerService.RegisterEvent<EEvent, GlobalEventHandler>("OnEvent_", "OnEvent_".Length,
                     EventHelper.AddListener, mgr);
             }
 
 
-OnServerHello==¡·OnEvent_OnServerHello
-ÊÂ¼şÃû==> OnEvent_ÊÂ¼şÃû
+OnServerHello==ã€‹OnEvent_OnServerHello
+äº‹ä»¶å==> OnEvent_äº‹ä»¶å
 
-EventHelper.Trigger(EEvent.OnServerHello, msg); ÅÉ·¢ÊÂ¼ş
+EventHelper.Trigger(EEvent.OnServerHello, msg); æ´¾å‘äº‹ä»¶
 }

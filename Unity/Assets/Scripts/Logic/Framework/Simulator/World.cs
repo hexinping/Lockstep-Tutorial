@@ -36,22 +36,27 @@ namespace Lockstep.Game {
         public void StartSimulate(IServiceContainer serviceContainer, IManagerContainer mgrContainer){
             Instance = this;
             _serviceContainer = serviceContainer;
+            //一系列系统注册，英雄 敌人 物理 哈希。。。。
             RegisterSystems();
             if (!serviceContainer.GetService<IConstStateService>().IsVideoMode) {
+                //非回放模式，注册日志追踪
                 RegisterSystem(new TraceLogSystem());
             }
 
             InitReference(serviceContainer, mgrContainer);
             foreach (var mgr in _systems) {
+                //给world里的每个system标记上service引用
                 mgr.InitReference(serviceContainer, mgrContainer);
             }
 
             foreach (var mgr in _systems) {
+                //调用每个system的 DoAwake
                 mgr.DoAwake(serviceContainer);
             }
 
             DoAwake(serviceContainer);
             foreach (var mgr in _systems) {
+                //调用每个system的 DoAwake
                 mgr.DoStart();
             }
 

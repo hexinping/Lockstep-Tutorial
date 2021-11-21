@@ -70,7 +70,10 @@ namespace Lockstep.Game {
 
         private void OnEvent_LevelLoadProgress(object param){
             if (_noNetwork) return;
+            //加载进度处理
             _roomMsgMgr.OnLevelLoadProgress((float) param);
+            
+            //重连进度条处理
             CheckLoadingProgress();
         }
 

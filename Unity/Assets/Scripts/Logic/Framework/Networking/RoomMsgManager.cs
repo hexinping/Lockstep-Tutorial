@@ -147,6 +147,7 @@ namespace Lockstep.Game {
         public void OnLevelLoadProgress(float progress){
             _curLoadProgress = progress;
             if (CurProgress >= 100) {
+                //当前客户端加载完成, 发送消息给服务器
                 CurGameState = EGameState.PartLoaded;
                 _nextSendLoadProgressTimer = Time.realtimeSinceStartup + ProgressSendInterval;
                 SendLoadingProgress(CurProgress);

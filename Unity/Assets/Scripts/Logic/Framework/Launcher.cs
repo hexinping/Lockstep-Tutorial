@@ -47,8 +47,12 @@ namespace Lockstep.Game {
             }
 
             Instance = this;
-            _serviceContainer = services as ServiceContainer;
+            //service的管理器，管理所有service
+            _serviceContainer = services as ServiceContainer; 
+            //事件注册的service
             _registerService = new EventRegisterService();
+            
+            //baseService的管理器，只管理baseService类
             _mgrContainer = new ManagerContainer();
             _timeMachineContainer = new TimeMachineContainer();
 
@@ -57,6 +61,7 @@ namespace Lockstep.Game {
             foreach (var service in svcs) {
                 _timeMachineContainer.RegisterTimeMachine(service as ITimeMachine);
                 if (service is BaseService baseService) {
+                    //把BaseService类型放入管理器中
                     _mgrContainer.RegisterManager(baseService);
                 }
             }
@@ -67,22 +72,26 @@ namespace Lockstep.Game {
 
 
         public void DoStart(){
+            
+            //所有的service都保存在一个局部变量上，每个service都能直接拿到一些共有service对象引用
             foreach (var mgr in _mgrContainer.AllMgrs) {
                 mgr.InitReference(_serviceContainer, _mgrContainer);
             }
             
-            //bind events 通过反射绑定事件
+            //bind events 通过反射绑定事件 OnEvent_XXX ==》 XXX是事件名
             foreach (var mgr in _mgrContainer.AllMgrs) {
                 _registerService.RegisterEvent<EEvent, GlobalEventHandler>("OnEvent_", "OnEvent_".Length,
                     EventHelper.AddListener, mgr);
             }
             //调用所有service的DoAwake和DoStart
+            // NetworkService GameConfigService 有重载DoAwake，否则都调用到BaseService的方法
+            //BaseGameServicesContainer里的一些共有服务，以及子类的服务
             foreach (var mgr in _mgrContainer.AllMgrs) {
                 mgr.DoAwake(_serviceContainer);
             }
 
             _DoAwake(_serviceContainer);
-
+            //SimulatorService / NetworkService 有重载DoStart 否则都调用到BaseService的方法
             foreach (var mgr in _mgrContainer.AllMgrs) {
                 mgr.DoStart();
             }
@@ -97,6 +106,7 @@ namespace Lockstep.Game {
             _constStateService = serviceContainer.GetService<IConstStateService>();
 
             if (IsVideoMode) {
+                //回放模式
                 _constStateService.SnapshotFrameInterval = 20;
                 //OpenRecordFile(RecordPath);
             }
@@ -115,10 +125,14 @@ namespace Lockstep.Game {
 
 
             if (IsVideoMode) {
+                //回放模式
+                //发送BorderVideoFrame事件 会调用到OnEvent_BorderVideoFrame方法
                 EventHelper.Trigger(EEvent.BorderVideoFrame, FramesInfo);
+                //发送OnGameCreate事件，调用OnEvent_OnGameCreate方法
                 EventHelper.Trigger(EEvent.OnGameCreate, GameStartInfo);
             }
             else if (IsClientMode) {
+                //客户端模式
                 GameStartInfo = _serviceContainer.GetService<IGameConfigService>().ClientModeInfo;
                 EventHelper.Trigger(EEvent.OnGameCreate, GameStartInfo);
                 EventHelper.Trigger(EEvent.LevelLoadDone, GameStartInfo);
@@ -128,13 +142,17 @@ namespace Lockstep.Game {
         public void DoUpdate(float fDeltaTime){
             Utils.UpdateServices();
             var deltaTime = fDeltaTime.ToLFloat();
+            
+            //_networkService 处理加载进度
             _networkService.DoUpdate(deltaTime);
             if (IsVideoMode && IsRunVideo && CurTick < MaxRunTick) {
+                //回放模式
                 _simulatorService.RunVideo();
                 return;
             }
 
             if (IsVideoMode && !IsRunVideo) {
+                //直接跳帧
                 _simulatorService.JumpTo(JumpToTick);
             }
 
