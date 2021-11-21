@@ -7,7 +7,7 @@
 7 所有玩家加载完毕后，服务器广播消息Msg_G2C_AllFinishedLoaded给每个客户端
 8 客户端所有玩家加载完毕消息，客户端处理消息回调RoomMsgManager.G2C_AllFinishedLoaded，派发事件给处理回调OnEvent_OnAllPlayerFinishedLoad，客户端发送Msg_PlayerInput给服务器
 9 服务器接收到到Msg_PlayerInput消息后，Game.C2G_PlayerInput里设置状态为 EGameState.Playing， Game.DoUpdate逻辑正式生效
-10 服务器每30毫秒会收集所有玩家的输入，并广播消息Msg_ServerFrames给客户端
+10  Game.DoUpdate里服务器每30毫秒会收集所有玩家的输入，并广播消息Msg_ServerFrames给客户端
 
 
 
