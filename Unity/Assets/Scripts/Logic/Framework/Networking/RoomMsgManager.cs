@@ -72,7 +72,7 @@ namespace Lockstep.Game {
             _allMsgDealFuncs = new DealNetMsg[_maxMsgId];
             _allMsgParsers = new ParseNetMsg[_maxMsgId];
             RegisterMsgHandlers();
-            _handler = msgHandler;
+            _handler = msgHandler; //NetworkMsgHandler
             _netUdp = _netTcp = new NetClient();//TODO Login
             _netTcp.DoStart();
             _netTcp.NetMsgHandler = OnNetMsg;
@@ -91,8 +91,8 @@ namespace Lockstep.Game {
                 case EMsgSC.G2C_RepMissFrame:  G2C_RepMissFrame(msg); break;
                 case EMsgSC.G2C_GameEvent:   G2C_GameEvent(msg); break;  
                 case EMsgSC.G2C_GameStartInfo: G2C_GameStartInfo(msg); break;
-                case EMsgSC.G2C_LoadingProgress:  G2C_LoadingProgress(msg); break;
-                case EMsgSC.G2C_AllFinishedLoaded: G2C_AllFinishedLoaded(msg); break;
+                case EMsgSC.G2C_LoadingProgress:  G2C_LoadingProgress(msg); break; //当前客户端刷新所有玩家的加载进度
+                case EMsgSC.G2C_AllFinishedLoaded: G2C_AllFinishedLoaded(msg); break; //服务器通知客户端所有玩家都加载完毕
 
              }
         }
@@ -100,6 +100,7 @@ namespace Lockstep.Game {
         public void DoUpdate(LFloat deltaTime){
             if (CurGameState == EGameState.Loading) {
                 if (_nextSendLoadProgressTimer < Time.realtimeSinceStartup) {
+                    //发送加载进度消息给服务器
                     SendLoadingProgress(CurProgress);
                 }
             }
@@ -147,6 +148,7 @@ namespace Lockstep.Game {
         public void OnLevelLoadProgress(float progress){
             _curLoadProgress = progress;
             if (CurProgress >= 100) {
+                //当前客户端加载完成, 发送消息给服务器
                 CurGameState = EGameState.PartLoaded;
                 _nextSendLoadProgressTimer = Time.realtimeSinceStartup + ProgressSendInterval;
                 SendLoadingProgress(CurProgress);
@@ -160,7 +162,7 @@ namespace Lockstep.Game {
             ResetStatus();
             this.helloBody = helloBody.Hello;
             ConnectUdp();
-            //TODO temp code
+            //TODO temp code 发送消息给服务器 Msg_C2L_JoinRoom
             SendTcp(EMsgSC.C2L_JoinRoom,new Msg_C2L_JoinRoom() {
                 RoomId = 0
             });
@@ -191,7 +193,7 @@ namespace Lockstep.Game {
             var msg = reader as Msg_G2C_GameStartInfo;
             HasRecvGameDta = true;
             GameStartInfo = msg;
-            _handler.OnGameStartInfo(msg);
+            _handler.OnGameStartInfo(msg); //调用的是NetworkMsgHandler.OnGameStartInfo
             //TODO temp code 
             HasConnGameTcp = true;
             HasConnGameUdp = true;
@@ -211,7 +213,7 @@ namespace Lockstep.Game {
         protected void G2C_AllFinishedLoaded(object reader){
             var msg = reader as Msg_G2C_AllFinishedLoaded;
             curLevel = msg.Level;
-            _handler.OnAllFinishedLoaded(msg.Level);
+            _handler.OnAllFinishedLoaded(msg.Level); //调用的是NetworkMsgHandler.OnAllFinishedLoaded
         }
 
         public void SendGameEvent(byte[] msg){

@@ -37,11 +37,11 @@ namespace Lockstep.Game {
             public ulong randSeed;
 
             public override void Do(object param){
-                randSeed = ((RandomService) param)._i.randSeed;
+                randSeed = ((RandomService) param)._i.randSeed; //???
             }
 
             public override void Undo(object param){
-                ((RandomService) param)._i.randSeed = randSeed;
+                ((RandomService) param)._i.randSeed = randSeed; //???
             }
         }
 

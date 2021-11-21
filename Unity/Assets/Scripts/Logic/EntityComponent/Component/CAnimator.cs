@@ -25,7 +25,8 @@ namespace Lockstep.Game {
         [HideInInspector] [ReRefBackup] public AnimatorConfig config;
         [HideInInspector] [ReRefBackup] public IAnimatorView view;
         [HideInInspector] [ReRefBackup] public AnimBindInfo curAnimBindInfo;
-
+        
+        //打上Backup标签的执行逻辑没找到？？
         [Backup] private LFloat _animLen;
         [Backup] private LFloat _timer;
         [Backup] private string _curAnimName = "";

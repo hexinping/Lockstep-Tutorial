@@ -51,7 +51,8 @@ namespace Lockstep.Game {
         public bool IsRunVideo { get; set; }
         public bool IsClientMode { get; set; }
         public bool IsReconnecting { get; set; }
-
+        
+        //是否追帧
         public bool IsPursueFrame { get; set; }
 
         public string GameName { get; set; }

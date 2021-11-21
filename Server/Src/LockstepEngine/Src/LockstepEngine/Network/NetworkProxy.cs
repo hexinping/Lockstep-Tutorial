@@ -99,7 +99,7 @@ namespace Lockstep.Network {
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
-
+                //async 开一异步线程处理
                 this.StartAccept();
             }
             catch (Exception e) {
@@ -112,13 +112,15 @@ namespace Lockstep.Network {
                 if (this.IsDisposed) {
                     return;
                 }
-
+                //等待accept或者connect，处理不同客户端的需要不断监听
                 await this.Accept();
             }
         }
 
         public virtual async Task<Session> Accept(){
+            //await 线程逻辑等待执行
             AChannel channel = await this.Service.AcceptChannel();
+            
             Session session = CreateSession(this, channel);
             channel.ErrorCallback += (c, e) => { this.Remove(session.Id); };
             this.sessions.Add(session.Id, session);
@@ -210,6 +212,7 @@ namespace Lockstep.Network {
         }
 
         public void Start(){
+            //async 每个session开一线程处理消息的接收
             this.StartRecv();
         }
 
@@ -286,10 +289,11 @@ namespace Lockstep.Network {
 
             // flag第一位为1表示这是rpc返回消息,否则交由MessageDispatcher分发
             if ((flag & 0x01) == 0) {
+                //调用代理的消息派发对象MessageDispatcher派发消息方法Dispatch
                 this.Network.MessageDispatcher.Dispatch(this, packet);
                 return;
             }
-
+            
             object message =
                 this.Network.MessagePacker.DeserializeFrom(opcode, packet.Bytes, Packet.Index,
                     packet.Length - Packet.Index);

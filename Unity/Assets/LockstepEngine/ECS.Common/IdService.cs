@@ -10,10 +10,11 @@ namespace Lockstep.Game {
         public int GenId(){
             return Id++;
         }
-
+        //简单的数据备份用一个Dictionary就能实现
         Dictionary<int, int> _tick2Id = new Dictionary<int, int>();
 
         public void RollbackTo(int tick){
+            //简单模式还原
             Id = _tick2Id[tick];
         }
 

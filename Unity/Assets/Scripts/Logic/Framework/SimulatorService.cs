@@ -114,7 +114,9 @@ namespace Lockstep.Game {
             //_localActorId = localActorId;
             _allActors = allActors;
             _constStateService.LocalActorId = LocalActorId;
+            //给world注册一些列system，并且调用system的DoAwake和DoStart方法
             _world.StartSimulate(_serviceContainer, _mgrContainer);
+            //发送LevelLoadProgress事件 会调用到OnEvent_LevelLoadProgress方法
             EventHelper.Trigger(EEvent.LevelLoadProgress, 1f);
         }
 
@@ -228,18 +230,22 @@ namespace Lockstep.Game {
             if (_commonStateService.IsPause) {
                 return;
             }
-
+            
+            //FrameBuffer.DoUpdate 对服务器的一些帧数据处理 判断是否需要回滚
             _cmdBuffer.DoUpdate(deltaTime);
+
 
             //client mode no network
             if (_constStateService.IsClientMode) {
+                //客户端模式
                 DoClientUpdate();
             }
             else {
                 while (inputTick <= inputTargetTick) {
+                    // 把客户端的输入发送到服务器
                     SendInputs(inputTick++);
                 }
-
+                //正常刷新
                 DoNormalUpdate();
             }
         }
@@ -302,7 +308,7 @@ namespace Lockstep.Game {
 
             var minTickToBackup = (maxContinueServerTick - (maxContinueServerTick % snapshotFrameInterval));
 
-            // Pursue Server frames
+            // Pursue Server frames 追帧 服务器重新连上会一下推送很多帧过来
             var deadline = LTime.realtimeSinceStartupMS + MaxSimulationMsPerFrame;
             while (_world.Tick < _cmdBuffer.CurTickInServer) {
                 var tick = _world.Tick;
@@ -324,10 +330,11 @@ namespace Lockstep.Game {
                 _constStateService.IsPursueFrame = false;
                 EventHelper.Trigger(EEvent.PursueFrameDone);
             }
+            
+            // Roll back 回滚
+            if (_cmdBuffer.IsNeedRollback ) {
+                //回滚主要逻辑看这里 TODO
 
-
-            // Roll back
-            if (_cmdBuffer.IsNeedRollback) {
                 RollbackTo(_cmdBuffer.NextTickToCheck, maxContinueServerTick);
                 CleanUselessSnapshot(System.Math.Min(_cmdBuffer.NextTickToCheck - 1, _world.Tick));
 
@@ -346,6 +353,7 @@ namespace Lockstep.Game {
             while (_world.Tick <= TargetTick) {
                 var curTick = _world.Tick;
                 ServerFrame frame = null;
+                //优先从服务器获取帧数据，没有的话走本地帧
                 var sFrame = _cmdBuffer.GetServerFrame(curTick);
                 if (sFrame != null) {
                     frame = sFrame;
@@ -357,6 +365,7 @@ namespace Lockstep.Game {
                 }
 
                 _cmdBuffer.PushLocalFrame(frame);
+                //预测逻辑
                 Predict(frame, true);
             }
 
@@ -392,7 +401,9 @@ namespace Lockstep.Game {
             Step(frame, isNeedGenSnap);
         }
 
+
         private bool RollbackTo(int tick, int maxContinueServerTick, bool isNeedClear = true){
+            //World.RollbackTo
             _world.RollbackTo(tick, maxContinueServerTick, isNeedClear);
             var hash = _commonStateService.Hash;
             var curHash = _hashHelper.CalcHash();
@@ -409,14 +420,23 @@ namespace Lockstep.Game {
 
         void Step(ServerFrame frame, bool isNeedGenSnap = true){
             //Debug.Log("Step: " + _world.Tick + " TargetTick: " + TargetTick);
+            //进行哈希校验
             _commonStateService.SetTick(_world.Tick);
             var hash = _hashHelper.CalcHash();
             _commonStateService.Hash = hash;
+            
+            //每一帧执行之前，对当前状态进行备份
             _timeMachineService.Backup(_world.Tick);
+
+            //存储帧信息
             DumpFrame(hash);
             hash = _hashHelper.CalcHash(true);
             _hashHelper.SetHash(_world.Tick, hash);
+            
+            //执行帧数据的里的玩家操作信息逻辑
             ProcessInputQueue(frame);
+            
+            //world 进行tick逻辑更新
             _world.Step(isNeedGenSnap);
             _dumpHelper.OnFrameEnd();
             var tick = _world.Tick;
@@ -510,10 +530,12 @@ namespace Lockstep.Game {
 
         void OnEvent_OnGameCreate(object param){
             if (param is Msg_G2C_Hello msg) {
+                //正常模式使用
                 OnGameCreate(60, msg.LocalId, msg.UserCount);
             }
 
             if (param is Msg_G2C_GameStartInfo smsg) {
+                //开始游戏消息 客户端模式使用
                 _gameStartInfo = smsg;
                 OnGameCreate(60, 0, smsg.UserCount);
             }

@@ -1,0 +1,31 @@
+1 客户端发送加入房间消息 ==》 Msg_C2L_JoinRoom
+2 服务器判断达到最大房间人数后==》开始游戏
+3 服务器给每个玩家发送一个Msg_G2C_Hello消息，确定每个客户端的localId
+4 服务器给每个玩家发送Msg_G2C_GameStartInfo消息，会调用到客户端RoomMsgManager.G2C_GameStartInfo,并且房间状态变成EGameState.Loading
+5 客户端RoomMsgManager.DoUpdate里会判断如果是EGameState.Loading状态就发送Msg_C2G_LoadingProgress消息
+6 服务器广播Msg_G2C_LoadingProgress消息给每个客户端，并且等待所有玩家加载完毕
+7 所有玩家加载完毕后，服务器广播消息Msg_G2C_AllFinishedLoaded给每个客户端
+8 客户端所有玩家加载完毕消息，客户端处理消息回调RoomMsgManager.G2C_AllFinishedLoaded，派发事件给处理回调OnEvent_OnAllPlayerFinishedLoad，客户端发送Msg_PlayerInput给服务器
+9 服务器接收到到Msg_PlayerInput消息后，Game.C2G_PlayerInput里设置状态为 EGameState.Playing， Game.DoUpdate逻辑正式生效
+10  Game.DoUpdate里服务器每30毫秒会收集所有玩家的输入，并广播消息Msg_ServerFrames给客户端
+11 客户端所有的Update逻辑都在Launcher.DoUpdate ==》 SimulatorService.DoUpdate
+
+
+
+==》 客户端使用TCP，处理消息都在NetworkService里  RoomMsgManager
+==》 服务器使用的Server类处理消息OnNetMsg
+
+客户端通过发射去注册事件机制
+{
+ 	//bind events 通过反射绑定事件
+            foreach (var mgr in _mgrContainer.AllMgrs) {
+                _registerService.RegisterEvent<EEvent, GlobalEventHandler>("OnEvent_", "OnEvent_".Length,
+                    EventHelper.AddListener, mgr);
+            }
+
+
+OnServerHello==》OnEvent_OnServerHello
+事件名==> OnEvent_事件名
+
+EventHelper.Trigger(EEvent.OnServerHello, msg); 派发事件
+}

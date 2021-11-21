@@ -22,6 +22,8 @@ namespace Lockstep.Game {
             FieldInfo[] fields = dst.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public);
             foreach (var field in fields) {
                 var type = field.FieldType;
+                //确定指定类型的实例是否可以分配给当前类型的实例
+                //判断type类型是否需为INeedBackup类型，去判断是否需要备份
                 if (typeof(INeedBackup).IsAssignableFrom(type)
                 ) {
                     CopyTo(field.GetValue(dst), field.GetValue(Entity));
