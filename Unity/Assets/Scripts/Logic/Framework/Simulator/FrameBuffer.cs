@@ -128,6 +128,7 @@ namespace Lockstep.Game {
 
             //Debug.Assert(nextTickToCheck <= nextClientTick, "localServerTick <= localClientTick ");
             //Confirm frames
+            //是否需要回滚
             IsNeedRollback = false;
             while (NextTickToCheck <= MaxServerTickInBuffer && NextTickToCheck<worldTick) {
                 var sIdx = NextTickToCheck % _bufferSize;
@@ -145,7 +146,8 @@ namespace Lockstep.Game {
                     break;
                 }
             }
-
+            
+            // 丢包或者断线重连的情况下 向服务器重新请求数据，虽然使用的是TCP 但接口的实现都是用UDP的思想来的 ==》 推荐使用KCP
             //Request miss frame data
             int tick = NextTickToCheck;
             for (; tick <= MaxServerTickInBuffer; tick++) {

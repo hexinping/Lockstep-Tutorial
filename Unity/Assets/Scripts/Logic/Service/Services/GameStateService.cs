@@ -139,19 +139,19 @@ namespace Lockstep.Game {
                 _id2Entities = new Dictionary<int, BaseEntity>();
                 _type2Entities.Clear();
 
-                //. Recover Entities
+                //. Recover Entities  Entities还原 内存数据还原
                 RecoverEntities(new List<Player>(), reader);
                 RecoverEntities(new List<Enemy>(), reader);
                 RecoverEntities(new List<Spawner>(), reader);
 
-                //. Rebind Ref
+                //. Rebind Ref   Enity上的引用重新绑定
                 foreach (var entity in _id2Entities.Values) {
                     entity.GameStateService = _gameStateService;
                     entity.ServiceContainer = _serviceContainer;
                     entity.DoBindRef();
                 }
 
-                //. Rebind Views 
+                //. Rebind Views  view层重新绑定
                 foreach (var pair in _id2Entities) {
                     BaseEntity oldEntity = null;
                     if (oldId2Entity.TryGetValue(pair.Key, out var poldEntity)) {

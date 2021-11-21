@@ -59,6 +59,7 @@ namespace Lockstep.Game {
             //AutoCreateManagers;
             var svcs = _serviceContainer.GetAllServices();
             foreach (var service in svcs) {
+                //继承于ITimeMachine的接口需要实现RollbackTo和Backup，进行数据的回滚和备份
                 _timeMachineContainer.RegisterTimeMachine(service as ITimeMachine);
                 if (service is BaseService baseService) {
                     //把BaseService类型放入管理器中

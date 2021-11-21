@@ -29,6 +29,7 @@ namespace Lockstep.Game {
         public virtual void Backup(int tick){ }
 
         public virtual void RollbackTo(int tick){
+            //命令模式 对应操作指令的回溯 CommandBuffer
             cmdBuffer?.Jump(CurTick, tick);
         }
 

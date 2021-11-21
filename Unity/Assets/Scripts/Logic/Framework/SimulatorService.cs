@@ -215,7 +215,8 @@ namespace Lockstep.Game {
             if (_commonStateService.IsPause) {
                 return;
             }
-            //FrameBuffer
+            
+            //FrameBuffer.DoUpdate 对服务器的一些帧数据处理 判断是否需要回滚
             _cmdBuffer.DoUpdate(deltaTime, _world.Tick );
 
             //client mode no network
@@ -225,7 +226,7 @@ namespace Lockstep.Game {
             }
             else {
                 while (inputTick <= inputTargetTick) {
-                    // ???? 这块没看懂
+                    // 把客户端的输入发送到服务器
                     SendInputs(inputTick++);
                 }
                 //正常刷新
@@ -258,7 +259,7 @@ namespace Lockstep.Game {
 
             var minTickToBackup = (maxContinueServerTick - (maxContinueServerTick % snapshotFrameInterval));
 
-            // Pursue Server frames 追帧
+            // Pursue Server frames 追帧 服务器重新连上会一下推送很多帧过来
             var deadline = LTime.realtimeSinceStartupMS + MaxSimulationMsPerFrame;
             while (_world.Tick < _cmdBuffer.CurTickInServer) {
                 var tick = _world.Tick;
@@ -284,6 +285,7 @@ namespace Lockstep.Game {
 
             // Roll back 回滚
             if (_cmdBuffer.IsNeedRollback ) {
+                //回滚主要逻辑看这里 TODO
                 RollbackTo(_cmdBuffer.NextTickToCheck, maxContinueServerTick);
                 CleanUselessSnapshot(System.Math.Min(_cmdBuffer.NextTickToCheck - 1, _world.Tick));
 
@@ -302,6 +304,7 @@ namespace Lockstep.Game {
             while (_world.Tick <= TargetTick) {
                 var curTick = _world.Tick;
                 ServerFrame frame = null;
+                //优先从服务器获取帧数据，没有的话走本地帧
                 var sFrame = _cmdBuffer.GetServerFrame(curTick);
                 if (sFrame != null) {
                     frame = sFrame;
@@ -313,6 +316,7 @@ namespace Lockstep.Game {
                 }
 
                 _cmdBuffer.PushLocalFrame(frame);
+                //预测逻辑
                 Predict(frame, true);
             }
 
@@ -345,6 +349,7 @@ namespace Lockstep.Game {
         }
 
         private void RollbackTo(int tick, int maxContinueServerTick, bool isNeedClear = true){
+            //World.RollbackTo
             _world.RollbackTo(tick, maxContinueServerTick, isNeedClear);
             var hash = _commonStateService.Hash;
             var curHash = _hashHelper.CalcHash();
@@ -356,13 +361,22 @@ namespace Lockstep.Game {
 
         void Step(ServerFrame frame, bool isNeedGenSnap = true){
             //Debug.Log("Step: " + _world.Tick + " TargetTick: " + TargetTick);
+            //进行哈希校验
             _commonStateService.SetTick(_world.Tick);
             var hash = _hashHelper.CalcHash();
             _commonStateService.Hash = hash;
+            
+            //每一帧执行之前，对当前状态进行备份
             _timeMachineService.Backup(_world.Tick);
+            
             _hashHelper.SetHash(_world.Tick, hash);
+            //存储帧信息
             DumpFrame(hash);
+            
+            //执行帧数据的里的玩家操作信息逻辑
             ProcessInputQueue(frame);
+            
+            //world 进行tick逻辑更新
             _world.Step(isNeedGenSnap);
             var tick = _world.Tick;
             _cmdBuffer.SetClientTick(tick);
