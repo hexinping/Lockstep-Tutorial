@@ -373,13 +373,16 @@ namespace Lockstep.Game {
         }
 
         void SendInputs(int curTick){
+            //模拟一个服务帧
             var input = new Msg_PlayerInput(curTick, LocalActorId, _inputService.GetInputCmds());
             var cFrame = new ServerFrame();
             var inputs = new Msg_PlayerInput[_actorCount];
             inputs[LocalActorId] = input;
             cFrame.Inputs = inputs;
             cFrame.tick = curTick;
+            //进行一些帧预测后
             FillInputWithLastFrame(cFrame);
+            //把在客户端模拟的本地帧（服务帧）压到本地栈里
             _cmdBuffer.PushLocalFrame(cFrame);
             //if (input.Commands != null) {
             //    var playerInput = new Deserializer(input.Commands[0].content).Parse<Lockstep.Game.PlayerInput>();
@@ -388,7 +391,7 @@ namespace Lockstep.Game {
             if (curTick > _cmdBuffer.MaxServerTickInBuffer) {
                 //TODO combine all history inputs into one Msg 
                 //Debug.Log("SendInput " + curTick +" _tickSinceGameStart " + _tickSinceGameStart);
-                _cmdBuffer.SendInput(input);
+                _cmdBuffer.SendInput(input); //发送玩家输入消息给服务
             }
         }
 
@@ -463,6 +466,9 @@ namespace Lockstep.Game {
         private void FillInputWithLastFrame(ServerFrame frame){
             int tick = frame.tick;
             var inputs = frame.Inputs;
+            //获取玩家的预测 _cmdBuffer.GetFrame(tick - 1)?.Inputs 
+            //获取玩家上一帧的输入作为玩家当前帧的预测 默认玩家的输入时间上是连续的
+            
             var lastServerInputs = tick == 0 ? null : _cmdBuffer.GetFrame(tick - 1)?.Inputs;
             var myInput = inputs[LocalActorId];
             //fill inputs with last frame's input (Input predict)
@@ -503,7 +509,8 @@ namespace Lockstep.Game {
         void OnEvent_BorderVideoFrame(object param){
             _videoFrames = param as Msg_RepMissFrame;
         }
-
+        
+        //OnServerFrame 业务处理，网络消息处理完后会抛事件给业务层
         void OnEvent_OnServerFrame(object param){
             var msg = param as Msg_ServerFrames;
             _hasRecvInputMsg = true;

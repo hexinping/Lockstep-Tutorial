@@ -12,6 +12,8 @@ namespace Lockstep.Game {
     public interface IFrameBuffer {
         void ForcePushDebugFrame(ServerFrame frame);
         void PushLocalFrame(ServerFrame frame);
+        
+        //服务器的帧处理
         void PushServerFrames(ServerFrame[] frames, bool isNeedDebugCheck = true);
         void PushMissServerFrames(ServerFrame[] frames, bool isNeedDebugCheck = true);
         void OnPlayerPing(Msg_G2C_PlayerPing msg);
@@ -100,8 +102,8 @@ namespace Lockstep.Game {
         private int _spaceRollbackNeed;
         private int _maxServerOverFrameCount;
 
-        private ServerFrame[] _serverBuffer;
-        private ServerFrame[] _clientBuffer;
+        private ServerFrame[] _serverBuffer; //服务器下发的真正的服务帧
+        private ServerFrame[] _clientBuffer; //客户端本地模拟的服务帧
 
         //ping 
         public int PingVal { get; private set; }
@@ -180,7 +182,7 @@ namespace Lockstep.Game {
             _serverBuffer[targetIdx] = data;
             _clientBuffer[targetIdx] = data;
         }
-
+        //对服务器帧进行压入
         public void PushServerFrames(ServerFrame[] frames, bool isNeedDebugCheck = true){
             var count = frames.Length;
             for (int i = 0; i < count; i++) {
@@ -191,12 +193,13 @@ namespace Lockstep.Game {
                     _delays.Add(delay);
                     _tick2SendTimestamp.Remove(data.tick);
                 }
-
+                //data.tick 当前帧
+                //NextTickToCheck 已经得到验证的帧数
                 if (data.tick < NextTickToCheck) {
                     //the frame is already checked
                     return;
                 }
-
+                //CurTickInServer 当前本地收到服务器的最大帧
                 if (data.tick > CurTickInServer) {
                     CurTickInServer = data.tick;
                 }
@@ -235,16 +238,17 @@ namespace Lockstep.Game {
             IsNeedRollback = false;
             while (NextTickToCheck <= MaxServerTickInBuffer && NextTickToCheck < worldTick) {
                 var sIdx = NextTickToCheck % _bufferSize;
-                var cFrame = _clientBuffer[sIdx];
-                var sFrame = _serverBuffer[sIdx];
+                var cFrame = _clientBuffer[sIdx]; //客户端的Buffer
+                var sFrame = _serverBuffer[sIdx]; //服务器的buffer
                 if (cFrame == null || cFrame.tick != NextTickToCheck || sFrame == null ||
                     sFrame.tick != NextTickToCheck)
                     break;
-                //Check client guess input match the real input
+                //Check client guess input match the real input 进行匹配
                 if (object.ReferenceEquals(sFrame, cFrame) || sFrame.Equals(cFrame)) {
                     NextTickToCheck++;
                 }
                 else {
+                    //客户端和服务器不匹配就要执行回滚操作
                     IsNeedRollback = true;
                     break;
                 }

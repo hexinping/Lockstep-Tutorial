@@ -42,6 +42,9 @@ namespace Lockstep.Game {
         public object transform;
         private OneThreadSynchronizationContext _syncContext; 
         public void DoAwake(IServiceContainer services){
+            
+            //设置同步的上下文 网络使用的是aynsc/await编程范式
+            //把子线程的回调指定到主线程，在Update里驱动_syncContext.Update
             _syncContext = new OneThreadSynchronizationContext();
             SynchronizationContext.SetSynchronizationContext(_syncContext);
             Utils.StartServices();
@@ -145,6 +148,7 @@ namespace Lockstep.Game {
         }
 
         public void DoUpdate(float fDeltaTime){
+            //处理网络消息的回调
             _syncContext.Update();
             Utils.UpdateServices();
             var deltaTime = fDeltaTime.ToLFloat();
