@@ -308,7 +308,7 @@ namespace Lockstep.Game {
 
             var minTickToBackup = (maxContinueServerTick - (maxContinueServerTick % snapshotFrameInterval));
 
-            // Pursue Server frames 追帧 服务器重新连上会一下推送很多帧过来
+            // Pursue Server frames 追帧 断线重连服务器重新连上会一下推送很多帧过来
             var deadline = LTime.realtimeSinceStartupMS + MaxSimulationMsPerFrame;
             while (_world.Tick < _cmdBuffer.CurTickInServer) {
                 var tick = _world.Tick;
@@ -321,6 +321,7 @@ namespace Lockstep.Game {
                 _cmdBuffer.PushLocalFrame(sFrame);
                 Simulate(sFrame, tick == minTickToBackup);
                 if (LTime.realtimeSinceStartupMS > deadline) {
+                    //达到一定时间就停止追帧，下一帧继续追，避免一追帧画面就卡主??? 这个有待商量，追帧不是都是逻辑跑吗，渲染帧也要？？？
                     OnPursuingFrame();
                     return;
                 }
@@ -349,7 +350,7 @@ namespace Lockstep.Game {
             }
 
 
-            //Run frames
+            //Run frames 
             while (_world.Tick <= TargetTick) {
                 var curTick = _world.Tick;
                 ServerFrame frame = null;
